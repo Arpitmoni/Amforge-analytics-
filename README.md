@@ -7,17 +7,6 @@
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 ![No Install](https://img.shields.io/badge/Zero_Install-Browser_Only-orange?style=for-the-badge)
 
----
-
-## 🔥 Live Demo
-
-**[▶ Open AmForge Analytics](https://YOUR-USERNAME.github.io/amforge-analytics/)**
-
-> Just open `index.html` in any browser — no installation, no server, no cloud required.
-
----
-
-## 📸 Screenshots
 
 | Dashboard | Data Cleaner PRO | vs Power BI |
 |-----------|-----------------|-------------|
@@ -52,54 +41,13 @@
 - **⬇️ Download Cleaned CSV** — Export fixed data instantly
 
 ### ⚔️ vs Power BI
-- **Free forever** vs ₹800+/month
+- **Free** vs ₹800+/month
 - **Zero install** vs requires download
 - **100% local** — data never leaves your browser
 - **Revenue Recovery** — not built-in in Power BI
 - **One Tap Fix** — not available in Power BI
 - **Open Source** — Power BI is proprietary
 
----
-
-## 🚀 Getting Started
-
-### Option 1 — Direct Open (Recommended)
-```bash
-# Just download and double-click!
-index.html
-```
-
-### Option 2 — GitHub Pages (Live URL)
-1. Fork this repository
-2. Go to **Settings → Pages**
-3. Source: **Deploy from branch → main → / (root)**
-4. Your live URL: `https://YOUR-USERNAME.github.io/amforge-analytics/`
-
-### Option 3 — Clone & Run
-```bash
-git clone https://github.com/YOUR-USERNAME/amforge-analytics.git
-cd amforge-analytics
-# Open index.html in browser
-open index.html          # macOS
-start index.html         # Windows
-xdg-open index.html      # Linux
-```
-
----
-
-## 📁 Project Structure
-
-```
-amforge-analytics/
-│
-├── index.html          ← Complete app (single file, zero dependencies*)
-├── README.md           ← This file
-├── LICENSE             ← MIT License
-├── .gitignore          ← Git ignore file
-│
-└── assets/             ← (Optional — for screenshots/demo GIFs)
-    └── screenshot.png
-```
 
 > *External CDN used only for Chart.js and Google Fonts. Works fully offline after first load.
 
@@ -143,17 +91,6 @@ AmForge uses **Power BI-grade** imputation strategies:
 | **Forward Fill** | Sequential/ordered data |
 | **Revenue Recovery** | Missing revenue when Units + Product exist |
 
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/AmazingFeature`
-3. Commit your changes: `git commit -m 'Add AmazingFeature'`
-4. Push to the branch: `git push origin feature/AmazingFeature`
-5. Open a Pull Request
-
----
 
 ## 📄 License
 
