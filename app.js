@@ -1,5 +1,4 @@
 
-
 'use strict';
 // ═══════════ STATE ═══════════
 const APP={datasets:[],activeId:null,filterCol:'',filterVal:'',nlCharts:[],CI:{}};
@@ -56,24 +55,44 @@ function getRows(){const ds=getDS();if(!ds)return[];let r=ds.rows;if(APP.filterC
 function handleDrop(e){e.preventDefault();document.getElementById('dz').classList.remove('drag');[...e.dataTransfer.files].forEach(processFile);}
 function handleFileInput(inp){[...inp.files].forEach(processFile);inp.value='';}
 function processFile(file){
-  if(!['csv','txt'].includes(file.name.split('.').pop().toLowerCase())){notify('Please upload a CSV or TXT file.','error');return;}
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(!['csv','txt','xlsx','xls'].includes(ext)){notify('Please upload CSV or Excel file.','error');return;}
   const r=new FileReader();
-  r.onload=e=>{
-    const p=parseCSV(e.target.result);
-    if(!p){notify('Could not parse file — check CSV format.','error');return;}
-    const c=basicClean(p.rows,p.schema);
-    const id='ds_'+Date.now();
-    APP.datasets.push({id,name:file.name,headers:p.headers,rows:c,schema:p.schema});
-    APP.activeId=id;APP.filterCol='';APP.filterVal='';
-    updateNav();showScreen('dashboard');
-    notify(`✓ ${c.length.toLocaleString()} rows loaded from ${file.name}`);
-  };
-  r.readAsText(file);
+  if(ext==='xlsx'||ext==='xls'){
+    r.onload=e=>{
+      try{
+        const wb=XLSX.read(e.target.result,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const csvText=XLSX.utils.sheet_to_csv(ws);
+        const p=parseCSV(csvText);
+        if(!p){notify('Could not parse Excel file.','error');return;}
+        const c=basicClean(p.rows,p.schema);
+        const id='ds_'+Date.now();
+        APP.datasets.push({id,name:file.name,headers:p.headers,rows:c,schema:p.schema});
+        APP.activeId=id;APP.filterCol='';APP.filterVal='';
+        updateNav();showScreen('dashboard');
+        notify(`✓ ${c.length.toLocaleString()} rows loaded from ${file.name} (Excel)`);
+      }catch(err){notify('Excel parse error: '+err.message,'error');}
+    };
+    r.readAsArrayBuffer(file);
+  }else{
+    r.onload=e=>{
+      const p=parseCSV(e.target.result);
+      if(!p){notify('Could not parse file — check CSV format.','error');return;}
+      const c=basicClean(p.rows,p.schema);
+      const id='ds_'+Date.now();
+      APP.datasets.push({id,name:file.name,headers:p.headers,rows:c,schema:p.schema});
+      APP.activeId=id;APP.filterCol='';APP.filterVal='';
+      updateNav();showScreen('dashboard');
+      notify(`✓ ${c.length.toLocaleString()} rows loaded from ${file.name}`);
+    };
+    r.readAsText(file);
+  }
 }
 
 // ═══════════ NAVIGATION ═══════════
-const TITLES={import:'IMPORT DATA',dashboard:'AUTO DASHBOARD',charts:'CHART GALLERY',ai:'AI INSIGHTS',forecast:'FORECASTING',datatable:'DATA TABLE',nl:'ASK AI',cleaner:'DATA CLEANER PRO',vscompare:'VS POWER BI'};
-const SUBS={import:'Upload your CSV file to get started',dashboard:'Auto-generated KPIs and charts',charts:'All chart types with live switching',ai:'AI-powered pattern and anomaly detection',forecast:'Linear regression for next 3 periods',datatable:'Search and filter raw data',nl:'Type English to generate charts instantly',cleaner:'Power BI-grade data quality + smart fixing',vscompare:'How AmForge compares to Power BI'};
+const TITLES={import:'IMPORT DATA',dashboard:'AUTO DASHBOARD',charts:'CHART GALLERY',ai:'AI INSIGHTS',forecast:'FORECASTING',datatable:'DATA TABLE',nl:'ASK AI',cleaner:'DATA CLEANER PRO',vscompare:'VS POWER BI',mapview:'MAP VIEW'};
+const SUBS={import:'Upload your CSV file to get started',dashboard:'Auto-generated KPIs and charts',charts:'All chart types with live switching',ai:'AI-powered pattern and anomaly detection',forecast:'Linear regression for next 3 periods',datatable:'Search and filter raw data',nl:'Type English to generate charts instantly',cleaner:'Power BI-grade data quality + smart fixing',vscompare:'How AmForge compares to Power BI',mapview:'Geographic data visualization'};
 
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -86,6 +105,7 @@ function showScreen(name){
   eb.style.display=ds&&['dashboard','charts','datatable'].includes(name)?'flex':'none';
   if(name==='dashboard')renderDashboard();
   else if(name==='charts')renderAllCharts();
+  else if(name==='mapview')initMapView();
   else if(name==='ai')renderInsights();
   else if(name==='forecast')renderForecast();
   else if(name==='datatable')renderTable();
@@ -110,6 +130,15 @@ function renderDSList(){
 function removeDS(id){APP.datasets=APP.datasets.filter(d=>d.id!==id);if(APP.activeId===id)APP.activeId=APP.datasets[0]?.id||null;updateNav();if(!APP.activeId)showScreen('import');}
 
 // ═══════════ CHART ENGINE ═══════════
+function exportChart(canvasId,title){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas){notify('Chart not found','error');return;}
+  const link=document.createElement('a');
+  link.download=(title||'chart')+'.png';
+  link.href=canvas.toDataURL('image/png');
+  link.click();
+  notify('📸 Chart saved as PNG!');
+}
 function buildChart(cid,type,labels,values){
   killChart(cid);
   const canvas=document.getElementById(cid);if(!canvas)return;
@@ -143,7 +172,7 @@ function agg(rows,gcol,ncol){
 
 function makeChartCard(id,title,pts,type){
   const types=['bar','line','pie','area','scatter','histogram'];
-  return`<div class="chart-card"><div class="ch-head"><div><div class="ch-title">${title}</div><div class="ch-pts">${pts} data points</div></div></div><div class="type-btns">${types.map(t=>`<button class="type-btn${t===type?' on':''}" onclick="switchChartType('${id}','${t}',this)">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join('')}</div><canvas id="${id}"></canvas></div>`;
+  return`<div class="chart-card"><div class="ch-head"><div><div class="ch-title">${title}</div><div class="ch-pts">${pts} data points</div></div><button onclick="exportChart('${id}','${title}')" style="background:none;border:1px solid var(--b2);color:var(--t2);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap" title="Export as PNG">📸 PNG</button></div><div class="type-btns">${types.map(t=>`<button class="type-btn${t===type?' on':''}" onclick="switchChartType('${id}','${t}',this)">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join('')}</div><canvas id="${id}"></canvas></div>`;
 }
 
 function getChartData(rows,schema){
@@ -522,7 +551,25 @@ function loadMessyToDash(){const p=parseCSV(MESSY_CSV);const c=basicClean(p.rows
 // ═══════════ CLEANER FILE HANDLING ═══════════
 function clDrop(e){e.preventDefault();document.getElementById('cl-zone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)clReadFile(f);}
 function clInput(inp){const f=inp.files[0];if(f)clReadFile(f);inp.value='';}
-function clReadFile(file){if(!['csv','txt'].includes(file.name.split('.').pop().toLowerCase())){notify('Please upload a CSV file.','error');return;}const r=new FileReader();r.onload=e=>runCleaner(e.target.result,file.name);r.readAsText(file);}
+function clReadFile(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(!['csv','txt','xlsx','xls'].includes(ext)){notify('Please upload CSV or Excel file.','error');return;}
+  const r=new FileReader();
+  if(ext==='xlsx'||ext==='xls'){
+    r.onload=e=>{
+      try{
+        const wb=XLSX.read(e.target.result,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const csvText=XLSX.utils.sheet_to_csv(ws);
+        runCleaner(csvText,file.name);
+      }catch(err){notify('Excel parse error: '+err.message,'error');}
+    };
+    r.readAsArrayBuffer(file);
+  }else{
+    r.onload=e=>runCleaner(e.target.result,file.name);
+    r.readAsText(file);
+  }
+}
 
 // ═══════════ RUN CLEANER ═══════════
 function runCleaner(csvText,fileName,strategies){
@@ -1036,4 +1083,3 @@ function renderVS(){
     return`<tr><td style="font-weight:500">${row.f}</td><td class="${usClass}">${row.us}</td><td class="${pbiClass}">${row.pbi}</td><td><span style="font-size:11px;color:var(--t2)">${row.cat}</span></td></tr>`;
   }).join('');
 }
-
