@@ -1083,3 +1083,52 @@ function renderVS(){
     return`<tr><td style="font-weight:500">${row.f}</td><td class="${usClass}">${row.us}</td><td class="${pbiClass}">${row.pbi}</td><td><span style="font-size:11px;color:var(--t2)">${row.cat}</span></td></tr>`;
   }).join('');
 }
+
+// ═══════════ MAP VIEW ═══════════
+let leafMap=null;
+function initMapView(){
+  const ds=getDS();
+  if(!ds){document.getElementById('map-container').innerHTML='<div style="text-align:center;padding:60px;color:var(--t2)">Please import a dataset first</div>';return;}
+  const locSel=document.getElementById('map-loc-col');
+  const valSel=document.getElementById('map-val-col');
+  locSel.innerHTML='<option value="">-- Select --</option>'+ds.headers.map(h=>`<option value="${h}">${h}</option>`).join('');
+  valSel.innerHTML='<option value="">-- Select --</option>'+ds.headers.filter(h=>ds.schema[h]==='number').map(h=>`<option value="${h}">${h}</option>`).join('');
+  const locHint=['region','city','state','country','location','area','zone','district'];
+  const autoLoc=ds.headers.find(h=>locHint.some(l=>h.toLowerCase().includes(l)));
+  if(autoLoc)locSel.value=autoLoc;
+  const nums=ds.headers.filter(h=>ds.schema[h]==='number');
+  if(nums.length)valSel.value=nums[0];
+  renderMap();
+}
+const INDIA_REGIONS={'north':[30.7333,76.7794],'south':[13.0827,80.2707],'east':[22.5726,88.3639],'west':[19.0760,72.8777],'central':[23.2599,77.4126],'northeast':[26.1445,91.7362],'delhi':[28.6139,77.2090],'mumbai':[19.0760,72.8777],'bangalore':[12.9716,77.5946],'chennai':[13.0827,80.2707],'kolkata':[22.5726,88.3639],'hyderabad':[17.3850,78.4867],'pune':[18.5204,73.8567],'ahmedabad':[23.0225,72.5714],'jaipur':[26.9124,75.7873],'lucknow':[26.8467,80.9462]};
+const WORLD_COORDS={'india':[20.5937,78.9629],'usa':[37.0902,-95.7129],'uk':[55.3781,-3.4360],'china':[35.8617,104.1954],'japan':[36.2048,138.2529],'germany':[51.1657,10.4515],'france':[46.2276,2.2137],'australia':[-25.2744,133.7751],'canada':[56.1304,-106.3468],'brazil':[-14.2350,-51.9253]};
+function getCoords(name){const n=String(name).toLowerCase().trim();return INDIA_REGIONS[n]||WORLD_COORDS[n]||null;}
+function renderMap(){
+  const ds=getDS();if(!ds)return;
+  const locCol=document.getElementById('map-loc-col').value;
+  const valCol=document.getElementById('map-val-col').value;
+  if(!locCol||!valCol)return;
+  const agged={};
+  ds.rows.forEach(r=>{const k=String(r[locCol]||'').trim();const v=parseFloat(r[valCol]);if(k&&!isNaN(v))agged[k]=(agged[k]||0)+v;});
+  const entries=Object.entries(agged);
+  if(!entries.length){notify('No data to map','error');return;}
+  const maxVal=Math.max(...entries.map(e=>e[1]));
+  const minVal=Math.min(...entries.map(e=>e[1]));
+  const mapDiv=document.getElementById('map-chart');
+  if(leafMap){leafMap.remove();leafMap=null;}
+  mapDiv.innerHTML='';
+  leafMap=L.map('map-chart').setView([22,80],4);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'©OpenStreetMap ©CartoDB',maxZoom:18}).addTo(leafMap);
+  let found=0;
+  entries.forEach(([name,val])=>{
+    const coords=getCoords(name);if(!coords)return;found++;
+    const pct=(val-minVal)/(maxVal-minVal||1);
+    const radius=15+pct*40;
+    const color=pct>0.7?'#EF4444':pct>0.4?'#F59E0B':'#10B981';
+    L.circleMarker(coords,{radius,fillColor:color,color:'#fff',weight:1,opacity:.9,fillOpacity:0.7})
+     .bindPopup(`<strong>${name}</strong><br>${valCol}: <strong>${val.toLocaleString()}</strong>`).addTo(leafMap);
+  });
+  document.getElementById('map-legend').innerHTML=found?
+    `<div style="background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px;display:flex;gap:16px;font-size:12px"><span style="color:#10B981">● Low</span><span style="color:#F59E0B">● Medium</span><span style="color:#EF4444">● High</span><span style="color:var(--t2);margin-left:auto">${found} locations mapped</span></div>`:
+    `<div style="color:var(--am);padding:12px;text-align:center">⚠️ Try: North, South, East, West, Mumbai, Delhi</div>`;
+}
