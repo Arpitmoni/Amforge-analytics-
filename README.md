@@ -110,5 +110,5 @@ See [LICENSE](LICENSE) for full details.
 
 <div align="center">
   <strong>AmForge Analytics</strong> — Forged for Intelligence<br/>
-  Made with ❤️ by Arpit Moni
+  Made with Love by Arpit Moni
 </div>
