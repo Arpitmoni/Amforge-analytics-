@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="AmForge Analytics — Free Professional Data Analytics Platform by Arpit Moni"/>
+  <meta name="author" content="Arpit Moni"/>
+  <title>AmForge Analytics — by Arpit Moni</title>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+
+  <!-- AmForge Styles -->
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="brand">
+    <div class="brand-logo"><span class="brand-af">AF</span></div>
+    <div>
+      <div class="brand-name">AMFORGE</div>
+      <div class="brand-sub">Analytics Platform</div>
+      <div class="brand-dev">by Arpit Moni</div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-grp">Workspace</div>
+    <button class="ni active" data-sc="import"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Import Data</button>
+    <button class="ni" data-sc="dashboard"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</button>
+    <button class="ni" data-sc="charts"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Charts</button>
+    <button class="ni" data-sc="ai"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>AI Insights</button>
+    <button class="ni" data-sc="forecast"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Forecast</button>
+    <button class="ni" data-sc="datatable"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Data Table</button>
+    <button class="ni" data-sc="nl"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Ask AI</button>
+    <button class="ni" data-sc="cleaner"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Data Cleaner<span class="pro">PRO</span></button>
+    <button class="ni" data-sc="vscompare"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg>vs Power BI<span class="new">NEW</span></button>
+    <div class="nav-grp" id="ds-sep" style="display:none">My Datasets</div>
+    <div id="ds-nav"></div>
+  </nav>
+  <div class="sidebar-footer">AmForge Analytics v2.0<br/><strong>by Arpit Moni</strong><br/>Free · Open Source · No Cloud</div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <div class="tb-l">
+      <div class="tb-title" id="tb-title">IMPORT DATA</div>
+      <div class="tb-sub" id="tb-sub">Upload your CSV to get started</div>
+    </div>
+    <div class="tb-r">
+      <div id="exp-btns" style="display:none;gap:7px;">
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="notify('Use Ctrl+P to print / save as PDF','info')">🖨 Print PDF</button>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('file-in').click()">＋ Import CSV</button>
+      <input type="file" id="file-in" accept=".csv,.txt" multiple style="display:none" onchange="handleFileInput(this)"/>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- IMPORT -->
+    <div id="sc-import" class="screen active">
+      <div class="drop-zone" id="dz" onclick="document.getElementById('file-in').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div class="dz-icon"><svg width="28" height="28" fill="none" stroke="var(--ac2)" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:8px">Drop Your CSV File Here</div>
+        <div style="font-size:13px;color:var(--t2);margin-bottom:22px;line-height:1.6">Auto-detects column types · Smart data cleaning · Instant dashboard<br/>CSV, TSV — any size</div>
+        <button class="btn btn-primary" onclick="event.stopPropagation()">Browse Files</button>
+      </div>
+      <div class="divider"><div class="div-line"></div><span style="font-size:12px;color:var(--t2);white-space:nowrap">or try sample data</span><div class="div-line"></div></div>
+      <div class="sample-row">
+        <button class="sample-btn" onclick="loadSample()">📊 Clean Sales Dataset (60 rows)</button>
+        <button class="sample-btn" onclick="loadMessyToDash()">⚠️ Messy Dataset (test cleaner)</button>
+      </div>
+      <div id="ds-list-wrap" style="display:none;max-width:660px;margin:24px auto 0">
+        <div style="font-size:10px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Loaded Datasets</div>
+        <div id="ds-list-items"></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="sc-dashboard" class="screen">
+      <div class="filter-bar">
+        <select class="f-sel" id="f-col" onchange="applyFilter()"><option value="">Filter by column...</option></select>
+        <input class="f-inp" id="f-val" placeholder="Filter value..." oninput="applyFilter()" style="width:175px"/>
+        <button class="btn btn-ghost btn-sm" onclick="clearFilter()">✕ Clear</button>
+        <span class="f-count" id="f-count"></span>
+      </div>
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div class="chart-grid" id="dash-charts"></div>
+    </div>
+
+    <!-- CHARTS -->
+    <div id="sc-charts" class="screen">
+      <div class="chart-grid" id="all-charts"></div>
+    </div>
+
+    <!-- AI INSIGHTS -->
+    <div id="sc-ai" class="screen">
+      <div style="max-width:800px">
+        <div class="sec-card">
+          <div class="sec-head">
+            <div class="sec-icon" style="background:linear-gradient(135deg,var(--ac),var(--pu))"><svg width="18" height="18" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+            <div><div class="sec-title">AI Analysis Engine</div><div class="sec-sub">Pattern detection · Anomaly alerts · Growth analysis · Performance scoring</div></div>
+          </div>
+          <div id="ins-list"></div>
+        </div>
+        <div class="sec-card">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px">Column Schema</div>
+          <div id="schema-tags" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORECAST -->
+    <div id="sc-forecast" class="screen">
+      <div class="sec-card">
+        <div class="sec-head">
+          <div class="sec-icon" style="background:rgba(245,158,11,.15);font-size:18px">📈</div>
+          <div><div class="sec-title">Trend Forecast</div><div class="sec-sub">Linear regression · Orange = predicted future values</div></div>
+        </div>
+        <canvas id="fc-chart" style="max-height:300px"></canvas>
+      </div>
+      <div class="fc-cards" id="fc-cards"></div>
+    </div>
+
+    <!-- DATA TABLE -->
+    <div id="sc-datatable" class="screen">
+      <div class="filter-bar">
+        <div style="position:relative">
+          <svg style="position:absolute;left:9px;top:50%;transform:translateY(-50%)" width="13" height="13" fill="none" stroke="var(--t2)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="f-inp" id="tbl-srch" placeholder="Search..." oninput="renderTable()" style="padding-left:30px;width:230px"/>
+        </div>
+        <select class="f-sel" id="tbl-col" onchange="renderTable()"><option value="">All columns</option></select>
+        <span class="f-count" id="tbl-count"></span>
+      </div>
+      <div class="tbl-wrap"><table><thead id="tbl-head"></thead><tbody id="tbl-body"></tbody></table></div>
+    </div>
+
+    <!-- NL -->
+    <div id="sc-nl" class="screen">
+      <div class="nl-box">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:4px">Natural Language Chart Builder</div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:14px">Type plain English → Instant chart</div>
+        <div style="display:flex;gap:9px">
+          <input class="nl-inp" id="nl-in" placeholder='"Show revenue by region" or "Top 5 products"' onkeydown="if(event.key==='Enter')buildNLChart()"/>
+          <button class="btn btn-primary" onclick="buildNLChart()">Generate ›</button>
+        </div>
+        <div class="nl-sug" id="nl-sug"></div>
+      </div>
+      <div id="nl-empty" style="text-align:center;color:var(--t2);padding:50px 0;font-size:14px">Type a query above and press Enter ↵</div>
+      <div class="chart-grid" id="nl-charts"></div>
+    </div>
+
+    <!-- DATA CLEANER -->
+    <div id="sc-cleaner" class="screen">
+      <div id="cl-zone" class="cl-upload" onclick="document.getElementById('cl-in').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')" ondrop="clDrop(event)"
+        style="max-width:700px;margin:0 auto 16px">
+        <div style="width:54px;height:54px;border-radius:13px;background:rgba(37,99,235,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+          <svg width="26" height="26" fill="none" stroke="var(--ac2)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:7px">Upload Messy CSV — Full Quality Report</div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:18px;line-height:1.6">Missing values · Duplicates · Type errors · Outliers · Revenue Recovery · Smart Imputation</div>
+        <button class="btn btn-primary" onclick="event.stopPropagation()">Browse File</button>
+        <input type="file" id="cl-in" accept=".csv,.txt" style="display:none" onchange="clInput(this)"/>
+      </div>
+      <div style="display:flex;gap:9px;max-width:700px;margin:0 auto 18px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="loadMessySample()">📂 Load Messy Sample</button>
+        <button class="btn btn-success btn-sm" id="cl-dl-btn" style="display:none" onclick="downloadClean()">⬇ Download Cleaned CSV</button>
+      </div>
+      <div id="cl-report"></div>
+    </div>
+
+    <!-- VS POWER BI -->
+    <div id="sc-vscompare" class="screen">
+      <div class="sec-card" style="max-width:950px">
+        <div class="sec-head">
+          <div class="sec-icon" style="background:rgba(212,175,55,.12);font-size:20px">⚔️</div>
+          <div><div class="sec-title">AmForge Analytics vs Microsoft Power BI</div><div class="sec-sub">Feature-by-feature comparison — built by Arpit Moni</div></div>
+        </div>
+        <div style="overflow-x:auto"><table class="vs-tbl"><thead><tr>
+          <th style="width:32%">Feature</th>
+          <th class="ours" style="width:24%">AmForge Analytics</th>
+          <th style="width:24%">Microsoft Power BI</th>
+          <th style="width:20%">Category</th>
+        </tr></thead><tbody id="vs-tbody"></tbody></table></div>
+        <div style="margin-top:20px;padding:16px;border-radius:10px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.12);font-size:13px;line-height:1.7">
+          <strong style="color:var(--ac2)">About AmForge Analytics</strong> — Built by <strong>Arpit Moni</strong> as a free, zero-install alternative to Power BI.
+          Runs entirely in your browser. No cloud, no data leaks, no subscription. Power BI Pro costs ₹800+/month — AmForge is <strong style="color:var(--gn)">completely free</strong>.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="notif"></div>
+
+<!-- AmForge JavaScript -->
+<script src="js/app.js"></script>
+<script src="js/cleaner.js"></script>
+<script src="js/vscompare.js"></script>
+</body>
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="AmForge Analytics — Free Professional Data Analytics Platform by Arpit Moni"/>
+  <meta name="author" content="Arpit Moni"/>
+  <title>AmForge Analytics — by Arpit Moni</title>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+
+  <!-- AmForge Styles -->
+<style>
+/* =====================================================
+   AmForge Analytics — style.css
+   Professional Data Analytics Platform
+   Developed by Arpit Moni
+   Version: 2.0
+   ===================================================== */
+
+/* ── CSS VARIABLES ── */
+:root {
+  --bg: #06080E;  --s1: #0B0E17;  --s2: #10141F;  --s3: #161C2A;
+  --b1: #1E2840;  --b2: #263250;  --b3: #2E3D60;
+  --ac: #2563EB;  --ac2: #3B82F6; --ac3: #60A5FA;
+  --gn: #10B981;  --am: #F59E0B;  --rd: #EF4444;
+  --pu: #8B5CF6;  --cy: #06B6D4;  --pk: #EC4899;
+  --tx: #E2E8F0;  --t2: #94A3B8;  --t3: #475569;
+  --gold: #D4AF37;
+}
+
+/* ── RESET ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--tx); display: flex; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 4px; }
+input, select, button, textarea { font-family: 'IBM Plex Sans', sans-serif; }
+button { cursor: pointer; border: none; }
+
+/* ── SIDEBAR ── */
+#sidebar { width: 220px; min-width: 220px; background: var(--s1); border-right: 1px solid var(--b1); display: flex; flex-direction: column; height: 100vh; overflow-y: auto; flex-shrink: 0; }
+.brand { padding: 18px 14px 16px; border-bottom: 1px solid var(--b1); display: flex; align-items: center; gap: 11px; }
+.brand-logo { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--ac), var(--pu)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; overflow: hidden; }
+.brand-logo::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,.06) 3px, rgba(255,255,255,.06) 4px); }
+.brand-af { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #fff; letter-spacing: 1px; position: relative; z-index: 1; }
+.brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1.5px; color: var(--tx); }
+.brand-sub { font-size: 9px; color: var(--t2); letter-spacing: .07em; text-transform: uppercase; margin-top: 1px; }
+.brand-dev { font-size: 9px; color: var(--ac3); margin-top: 2px; }
+
+/* ── NAV ── */
+nav { padding: 10px 8px; flex: 1; }
+.nav-grp { font-size: 9px; color: var(--t3); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; padding: 14px 10px 6px; }
+.ni { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; margin-bottom: 2px; color: var(--t2); font-size: 13px; font-weight: 400; transition: all .15s; background: transparent; width: 100%; text-align: left; border-left: 2px solid transparent; }
+.ni:hover { background: var(--s3); color: var(--tx); }
+.ni.active { background: rgba(37,99,235,.14); color: var(--ac2); font-weight: 600; border-left-color: var(--ac); }
+.ni svg { width: 15px; height: 15px; flex-shrink: 0; }
+.ni .pro { font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px; background: var(--gold); color: #000; margin-left: auto; }
+.ni .new { font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px; background: var(--gn); color: #000; margin-left: auto; }
+.ds-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 7px; margin-bottom: 1px; color: var(--t2); font-size: 12px; transition: all .15s; background: transparent; width: 100%; text-align: left; }
+.ds-item:hover { background: var(--s3); color: var(--tx); }
+.ds-item.active { color: var(--ac2); background: rgba(37,99,235,.1); }
+.sidebar-footer { padding: 13px 12px; border-top: 1px solid var(--b1); font-size: 10px; color: var(--t3); text-align: center; line-height: 1.7; }
+.sidebar-footer strong { color: var(--ac3); }
+
+/* ── MAIN ── */
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+#topbar { background: var(--s1); border-bottom: 1px solid var(--b1); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 14px; }
+.tb-l { min-width: 0; }
+.tb-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-sub { font-size: 11px; color: var(--t2); margin-top: 2px; }
+.tb-r { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+
+/* ── BUTTONS ── */
+.btn { padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; transition: all .15s; border: none; }
+.btn:hover { opacity: .85; }
+.btn-primary { background: var(--ac); color: #fff; }
+.btn-success { background: var(--gn); color: #000; }
+.btn-ghost { background: transparent; border: 1px solid var(--b2); color: var(--t2); }
+.btn-ghost:hover { color: var(--tx); border-color: var(--b3); }
+.btn-danger { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3); color: var(--rd); }
+.btn-sm { padding: 5px 11px; font-size: 11px; }
+.btn-xs { padding: 3px 8px; font-size: 10px; }
+
+/* ── CONTENT ── */
+#content { flex: 1; overflow-y: auto; padding: 22px 24px; }
+.screen { display: none; animation: fadeUp .25s ease; }
+.screen.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ── IMPORT ── */
+.drop-zone { border: 2px dashed var(--b2); border-radius: 16px; padding: 52px 40px; text-align: center; cursor: pointer; transition: all .2s; background: var(--s1); max-width: 660px; margin: 0 auto; }
+.drop-zone:hover, .drop-zone.drag { border-color: var(--ac2); background: rgba(37,99,235,.05); }
+.dz-icon { width: 58px; height: 58px; border-radius: 14px; background: rgba(37,99,235,.12); border: 1px solid rgba(37,99,235,.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.divider { display: flex; align-items: center; gap: 16px; margin: 22px auto; max-width: 660px; }
+.div-line { flex: 1; height: 1px; background: var(--b1); }
+.sample-row { display: flex; gap: 10px; max-width: 660px; margin: 0 auto; }
+.sample-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 10px; background: var(--s2); border: 1px solid var(--b1); color: var(--tx); font-size: 13px; cursor: pointer; transition: all .15s; font-weight: 500; }
+.sample-btn:hover { border-color: var(--ac2); color: var(--ac2); }
+
+/* ── KPI ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 13px; margin-bottom: 22px; }
+.kpi-card { background: var(--s1); border: 1px solid var(--b1); border-radius: 13px; padding: 18px; position: relative; overflow: hidden; transition: all .2s; }
+.kpi-card:hover { border-color: var(--b2); transform: translateY(-1px); }
+.kpi-glow { position: absolute; top: -25px; right: -25px; width: 85px; height: 85px; border-radius: 50%; opacity: .06; }
+.kpi-label { font-size: 10px; color: var(--t2); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+.kpi-val { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; letter-spacing: -.5px; }
+.kpi-sub { font-size: 11px; color: var(--t2); margin-top: 5px; }
+.kpi-bar { width: 100%; height: 3px; background: var(--b1); border-radius: 2px; margin-top: 13px; }
+.kpi-bar-fill { height: 100%; border-radius: 2px; }
+
+/* ── CHARTS ── */
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(390px, 1fr)); gap: 15px; }
+.chart-card { background: var(--s1); border: 1px solid var(--b1); border-radius: 14px; padding: 20px; transition: all .2s; }
+.chart-card:hover { border-color: var(--b2); }
+.ch-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+.ch-title { font-size: 13px; font-weight: 600; color: var(--tx); }
+.ch-pts { font-size: 10px; color: var(--t2); margin-top: 2px; }
+.type-btns { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 11px; }
+.type-btn { padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: 500; cursor: pointer; border: 1px solid var(--b1); background: transparent; color: var(--t2); transition: all .15s; }
+.type-btn:hover { color: var(--tx); }
+.type-btn.on { background: rgba(37,99,235,.15); border-color: rgba(37,99,235,.4); color: var(--ac2); }
+canvas { max-height: 220px; }
+
+/* ── FILTER ── */
+.filter-bar { display: flex; gap: 9px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.f-sel, .f-inp { padding: 7px 11px; border-radius: 7px; background: var(--s1); border: 1px solid var(--b1); color: var(--tx); font-size: 12px; outline: none; transition: border-color .15s; }
+.f-sel:focus, .f-inp:focus { border-color: var(--ac2); }
+.f-count { margin-left: auto; font-size: 11px; color: var(--t2); }
+
+/* ── INSIGHTS ── */
+.ins-card { display: flex; gap: 12px; padding: 13px 15px; border-radius: 10px; border: 1px solid transparent; margin-bottom: 9px; animation: fadeUp .3s ease both; }
+.ins-card.positive { background: rgba(16,185,129,.07); border-color: rgba(16,185,129,.15); }
+.ins-card.warning  { background: rgba(245,158,11,.07);  border-color: rgba(245,158,11,.15); }
+.ins-card.alert    { background: rgba(239,68,68,.07);   border-color: rgba(239,68,68,.15); }
+.ins-card.info     { background: rgba(37,99,235,.06);   border-color: rgba(37,99,235,.12); }
+.ins-tx { font-size: 13px; line-height: 1.65; }
+
+/* ── TABLE ── */
+.tbl-wrap { background: var(--s1); border-radius: 12px; border: 1px solid var(--b1); overflow: auto; max-height: calc(100vh - 220px); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead tr { background: var(--s2); position: sticky; top: 0; z-index: 2; }
+th { padding: 10px 14px; text-align: left; color: var(--t2); font-weight: 600; font-size: 10px; border-bottom: 1px solid var(--b1); white-space: nowrap; text-transform: uppercase; letter-spacing: .06em; }
+td { padding: 8px 14px; border-bottom: 1px solid rgba(30,40,64,.5); white-space: nowrap; color: var(--tx); }
+tr:hover td { background: var(--s2); }
+td.num { font-family: 'IBM Plex Mono', monospace; color: var(--cy); }
+.type-tag { font-size: 9px; color: var(--t3); font-weight: 400; margin-left: 4px; }
+
+/* ── FORECAST ── */
+.fc-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-top: 18px; }
+.fc-card { background: var(--s1); border: 1px solid var(--b1); border-radius: 12px; padding: 17px; }
+.fc-lbl { font-size: 10px; color: var(--t2); font-weight: 600; text-transform: uppercase; letter-spacing: .07em; }
+.fc-val { font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 600; color: var(--am); margin-top: 7px; }
+.fc-sub { font-size: 11px; color: var(--t2); margin-top: 4px; }
+
+/* ── NL ── */
+.nl-box { background: var(--s1); border-radius: 14px; border: 1px solid var(--b1); padding: 22px; margin-bottom: 18px; max-width: 880px; }
+.nl-inp { width: 100%; padding: 11px 14px; border-radius: 8px; background: var(--s2); border: 1px solid var(--b2); color: var(--tx); font-size: 13px; outline: none; }
+.nl-inp:focus { border-color: var(--ac2); }
+.nl-sug { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.nl-sug-btn { padding: 4px 11px; border-radius: 20px; background: var(--s2); border: 1px solid var(--b1); color: var(--t2); font-size: 11px; cursor: pointer; transition: all .15s; }
+.nl-sug-btn:hover { border-color: var(--ac2); color: var(--ac2); }
+
+/* ── NOTIFICATION ── */
+#notif { position: fixed; bottom: 22px; right: 22px; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; max-width: 380px; z-index: 9999; display: none; box-shadow: 0 12px 40px rgba(0,0,0,.6); animation: slideIn .3s ease; }
+@keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+#notif.success { background: rgba(16,185,129,.15); border: 1px solid rgba(16,185,129,.35); color: var(--gn); }
+#notif.error   { background: rgba(239,68,68,.15);  border: 1px solid rgba(239,68,68,.35);  color: var(--rd); }
+#notif.info    { background: rgba(37,99,235,.15);  border: 1px solid rgba(37,99,235,.35);  color: var(--ac2); }
+
+/* ── SECTION CARD ── */
+.sec-card { background: var(--s1); border: 1px solid var(--b1); border-radius: 14px; padding: 22px; margin-bottom: 16px; }
+.sec-head { display: flex; align-items: center; gap: 11px; margin-bottom: 16px; }
+.sec-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.sec-title { font-size: 15px; font-weight: 700; }
+.sec-sub { font-size: 11px; color: var(--t2); margin-top: 1px; }
+
+/* ── CLEANER ── */
+.cl-upload { border: 2px dashed var(--b2); border-radius: 14px; padding: 40px; text-align: center; cursor: pointer; transition: all .2s; background: var(--s1); }
+.cl-upload:hover, .cl-upload.drag { border-color: var(--ac2); background: rgba(37,99,235,.04); }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 11px; margin-bottom: 22px; }
+.stat-card { background: var(--s1); border: 1px solid var(--b1); border-radius: 12px; padding: 15px 16px; text-align: center; }
+.stat-num { font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; letter-spacing: -.5px; }
+.stat-lbl { font-size: 10px; color: var(--t2); font-weight: 600; text-transform: uppercase; letter-spacing: .07em; margin-top: 4px; }
+.stat-sub { font-size: 10px; color: var(--t2); margin-top: 2px; }
+.iss-row { display: flex; align-items: flex-start; gap: 11px; padding: 12px 14px; border-radius: 9px; margin-bottom: 8px; border: 1px solid transparent; }
+.iss-row.err  { background: rgba(239,68,68,.07);  border-color: rgba(239,68,68,.14); }
+.iss-row.warn { background: rgba(245,158,11,.07); border-color: rgba(245,158,11,.14); }
+.iss-row.ok   { background: rgba(16,185,129,.07); border-color: rgba(16,185,129,.14); }
+.iss-row.info { background: rgba(37,99,235,.06);  border-color: rgba(37,99,235,.12); }
+.iss-t { font-size: 13px; font-weight: 600; }
+.iss-d { font-size: 12px; color: var(--t2); margin-top: 3px; line-height: 1.55; }
+.iss-cnt { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; align-self: flex-start; flex-shrink: 0; margin-top: 2px; }
+.cr { background: rgba(239,68,68,.2);  color: var(--rd); }
+.ca { background: rgba(245,158,11,.2); color: var(--am); }
+.cg { background: rgba(16,185,129,.2); color: var(--gn); }
+.cb { background: rgba(37,99,235,.2);  color: var(--ac2); }
+.ba-wrap { overflow-x: auto; margin-top: 12px; }
+.ba-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ba-tbl th { padding: 8px 12px; text-align: left; background: var(--s2); color: var(--t2); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--b1); white-space: nowrap; }
+.ba-tbl td { padding: 8px 12px; border-bottom: 1px solid rgba(30,40,64,.4); vertical-align: middle; color: var(--tx); }
+.ba-tbl tr:last-child td { border-bottom: none; }
+.ba-tbl tr:hover td { background: var(--s2); }
+.v-b { color: var(--rd); text-decoration: line-through; font-size: 11px; font-family: 'IBM Plex Mono', monospace; }
+.v-a { color: var(--gn); font-weight: 600; font-size: 11px; font-family: 'IBM Plex Mono', monospace; }
+.r-tag { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 700; text-transform: uppercase; background: var(--s3); color: var(--t2); }
+.prog { width: 100%; height: 7px; background: var(--b1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+.prog-fill { height: 100%; border-radius: 4px; transition: width .7s ease; }
+.score-big { font-family: 'Bebas Neue', sans-serif; font-size: 58px; letter-spacing: -1px; line-height: 1; }
+.col-hlth { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(30,40,64,.4); }
+.col-hlth:last-child { border-bottom: none; }
+.col-name { font-size: 13px; font-weight: 500; width: 130px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-type { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.t-num  { background: rgba(6,182,212,.15);  color: var(--cy); }
+.t-txt  { background: rgba(37,99,235,.15);  color: var(--ac2); }
+.t-date { background: rgba(245,158,11,.15); color: var(--am); }
+.col-bar { flex: 1; height: 5px; background: var(--b1); border-radius: 3px; overflow: hidden; }
+.col-bar-fill { height: 100%; border-radius: 3px; }
+.col-pct { font-size: 11px; width: 36px; text-align: right; flex-shrink: 0; font-family: 'IBM Plex Mono', monospace; }
+.col-iss { font-size: 11px; flex-shrink: 0; width: 115px; text-align: right; }
+.score-card { background: var(--s1); border: 1px solid var(--b1); border-radius: 14px; padding: 22px; margin-bottom: 16px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.strat-sel { width: 100%; padding: 8px 10px; border-radius: 7px; background: var(--s1); border: 1px solid var(--b2); color: var(--tx); font-size: 12px; outline: none; cursor: pointer; }
+.strat-sel:focus { border-color: var(--ac2); }
+.compare-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.compare-panel { border-radius: 11px; padding: 18px; }
+.compare-panel.before { background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.14); }
+.compare-panel.after  { background: rgba(16,185,129,.06); border: 1px solid rgba(16,185,129,.14); }
+.one-tap { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 15px; border-radius: 12px; background: linear-gradient(135deg, var(--ac), var(--pu)); color: #fff; font-family: 'Bebas Neue', sans-serif; font-size: 19px; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 20px rgba(37,99,235,.3); transition: all .2s; margin-bottom: 20px; }
+.one-tap:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,99,235,.4); }
+.dl-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; background: var(--gn); color: #000; font-size: 12px; font-weight: 700; cursor: pointer; border: none; transition: opacity .15s; }
+.dl-btn:hover { opacity: .85; }
+
+/* ── VS TABLE ── */
+.vs-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.vs-tbl th { padding: 11px 16px; text-align: left; border-bottom: 2px solid var(--b1); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--t2); }
+.vs-tbl th.ours { color: var(--ac2); }
+.vs-tbl td { padding: 11px 16px; border-bottom: 1px solid rgba(30,40,64,.4); color: var(--tx); }
+.vs-tbl tr:last-child td { border-bottom: none; }
+.vs-tbl tr:hover td { background: var(--s2); }
+.vs-yes  { color: var(--gn); font-weight: 700; }
+.vs-no   { color: var(--rd); }
+.vs-part { color: var(--am); }
+
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="brand">
+    <div class="brand-logo"><span class="brand-af">AF</span></div>
+    <div>
+      <div class="brand-name">AMFORGE</div>
+      <div class="brand-sub">Analytics Platform</div>
+      <div class="brand-dev">by Arpit Moni</div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-grp">Workspace</div>
+    <button class="ni active" data-sc="import"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Import Data</button>
+    <button class="ni" data-sc="dashboard"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</button>
+    <button class="ni" data-sc="charts"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Charts</button>
+    <button class="ni" data-sc="ai"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>AI Insights</button>
+    <button class="ni" data-sc="forecast"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Forecast</button>
+    <button class="ni" data-sc="datatable"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Data Table</button>
+    <button class="ni" data-sc="nl"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Ask AI</button>
+    <button class="ni" data-sc="cleaner"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Data Cleaner<span class="pro">PRO</span></button>
+    <button class="ni" data-sc="vscompare"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg>vs Power BI<span class="new">NEW</span></button>
+    <div class="nav-grp" id="ds-sep" style="display:none">My Datasets</div>
+    <div id="ds-nav"></div>
+  </nav>
+  <div class="sidebar-footer">AmForge Analytics v2.0<br/><strong>by Arpit Moni</strong><br/>Free · Open Source · No Cloud</div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <div class="tb-l">
+      <div class="tb-title" id="tb-title">IMPORT DATA</div>
+      <div class="tb-sub" id="tb-sub">Upload your CSV to get started</div>
+    </div>
+    <div class="tb-r">
+      <div id="exp-btns" style="display:none;gap:7px;">
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="notify('Use Ctrl+P to print / save as PDF','info')">🖨 Print PDF</button>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('file-in').click()">＋ Import CSV</button>
+      <input type="file" id="file-in" accept=".csv,.txt" multiple style="display:none" onchange="handleFileInput(this)"/>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- IMPORT -->
+    <div id="sc-import" class="screen active">
+      <div class="drop-zone" id="dz" onclick="document.getElementById('file-in').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div class="dz-icon"><svg width="28" height="28" fill="none" stroke="var(--ac2)" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:8px">Drop Your CSV File Here</div>
+        <div style="font-size:13px;color:var(--t2);margin-bottom:22px;line-height:1.6">Auto-detects column types · Smart data cleaning · Instant dashboard<br/>CSV, TSV — any size</div>
+        <button class="btn btn-primary" onclick="event.stopPropagation()">Browse Files</button>
+      </div>
+      <div class="divider"><div class="div-line"></div><span style="font-size:12px;color:var(--t2);white-space:nowrap">or try sample data</span><div class="div-line"></div></div>
+      <div class="sample-row">
+        <button class="sample-btn" onclick="loadSample()">📊 Clean Sales Dataset (60 rows)</button>
+        <button class="sample-btn" onclick="loadMessyToDash()">⚠️ Messy Dataset (test cleaner)</button>
+      </div>
+      <div id="ds-list-wrap" style="display:none;max-width:660px;margin:24px auto 0">
+        <div style="font-size:10px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Loaded Datasets</div>
+        <div id="ds-list-items"></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="sc-dashboard" class="screen">
+      <div class="filter-bar">
+        <select class="f-sel" id="f-col" onchange="applyFilter()"><option value="">Filter by column...</option></select>
+        <input class="f-inp" id="f-val" placeholder="Filter value..." oninput="applyFilter()" style="width:175px"/>
+        <button class="btn btn-ghost btn-sm" onclick="clearFilter()">✕ Clear</button>
+        <span class="f-count" id="f-count"></span>
+      </div>
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div class="chart-grid" id="dash-charts"></div>
+    </div>
+
+    <!-- CHARTS -->
+    <div id="sc-charts" class="screen">
+      <div class="chart-grid" id="all-charts"></div>
+    </div>
+
+    <!-- AI INSIGHTS -->
+    <div id="sc-ai" class="screen">
+      <div style="max-width:800px">
+        <div class="sec-card">
+          <div class="sec-head">
+            <div class="sec-icon" style="background:linear-gradient(135deg,var(--ac),var(--pu))"><svg width="18" height="18" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+            <div><div class="sec-title">AI Analysis Engine</div><div class="sec-sub">Pattern detection · Anomaly alerts · Growth analysis · Performance scoring</div></div>
+          </div>
+          <div id="ins-list"></div>
+        </div>
+        <div class="sec-card">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px">Column Schema</div>
+          <div id="schema-tags" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORECAST -->
+    <div id="sc-forecast" class="screen">
+      <div class="sec-card">
+        <div class="sec-head">
+          <div class="sec-icon" style="background:rgba(245,158,11,.15);font-size:18px">📈</div>
+          <div><div class="sec-title">Trend Forecast</div><div class="sec-sub">Linear regression · Orange = predicted future values</div></div>
+        </div>
+        <canvas id="fc-chart" style="max-height:300px"></canvas>
+      </div>
+      <div class="fc-cards" id="fc-cards"></div>
+    </div>
+
+    <!-- DATA TABLE -->
+    <div id="sc-datatable" class="screen">
+      <div class="filter-bar">
+        <div style="position:relative">
+          <svg style="position:absolute;left:9px;top:50%;transform:translateY(-50%)" width="13" height="13" fill="none" stroke="var(--t2)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="f-inp" id="tbl-srch" placeholder="Search..." oninput="renderTable()" style="padding-left:30px;width:230px"/>
+        </div>
+        <select class="f-sel" id="tbl-col" onchange="renderTable()"><option value="">All columns</option></select>
+        <span class="f-count" id="tbl-count"></span>
+      </div>
+      <div class="tbl-wrap"><table><thead id="tbl-head"></thead><tbody id="tbl-body"></tbody></table></div>
+    </div>
+
+    <!-- NL -->
+    <div id="sc-nl" class="screen">
+      <div class="nl-box">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:4px">Natural Language Chart Builder</div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:14px">Type plain English → Instant chart</div>
+        <div style="display:flex;gap:9px">
+          <input class="nl-inp" id="nl-in" placeholder='"Show revenue by region" or "Top 5 products"' onkeydown="if(event.key==='Enter')buildNLChart()"/>
+          <button class="btn btn-primary" onclick="buildNLChart()">Generate ›</button>
+        </div>
+        <div class="nl-sug" id="nl-sug"></div>
+      </div>
+      <div id="nl-empty" style="text-align:center;color:var(--t2);padding:50px 0;font-size:14px">Type a query above and press Enter ↵</div>
+      <div class="chart-grid" id="nl-charts"></div>
+    </div>
+
+    <!-- DATA CLEANER -->
+    <div id="sc-cleaner" class="screen">
+      <div id="cl-zone" class="cl-upload" onclick="document.getElementById('cl-in').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')" ondrop="clDrop(event)"
+        style="max-width:700px;margin:0 auto 16px">
+        <div style="width:54px;height:54px;border-radius:13px;background:rgba(37,99,235,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+          <svg width="26" height="26" fill="none" stroke="var(--ac2)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:7px">Upload Messy CSV — Full Quality Report</div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:18px;line-height:1.6">Missing values · Duplicates · Type errors · Outliers · Revenue Recovery · Smart Imputation</div>
+        <button class="btn btn-primary" onclick="event.stopPropagation()">Browse File</button>
+        <input type="file" id="cl-in" accept=".csv,.txt" style="display:none" onchange="clInput(this)"/>
+      </div>
+      <div style="display:flex;gap:9px;max-width:700px;margin:0 auto 18px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="loadMessySample()">📂 Load Messy Sample</button>
+        <button class="btn btn-success btn-sm" id="cl-dl-btn" style="display:none" onclick="downloadClean()">⬇ Download Cleaned CSV</button>
+      </div>
+      <div id="cl-report"></div>
+    </div>
+
+    <!-- VS POWER BI -->
+    <div id="sc-vscompare" class="screen">
+      <div class="sec-card" style="max-width:950px">
+        <div class="sec-head">
+          <div class="sec-icon" style="background:rgba(212,175,55,.12);font-size:20px">⚔️</div>
+          <div><div class="sec-title">AmForge Analytics vs Microsoft Power BI</div><div class="sec-sub">Feature-by-feature comparison — built by Arpit Moni</div></div>
+        </div>
+        <div style="overflow-x:auto"><table class="vs-tbl"><thead><tr>
+          <th style="width:32%">Feature</th>
+          <th class="ours" style="width:24%">AmForge Analytics</th>
+          <th style="width:24%">Microsoft Power BI</th>
+          <th style="width:20%">Category</th>
+        </tr></thead><tbody id="vs-tbody"></tbody></table></div>
+        <div style="margin-top:20px;padding:16px;border-radius:10px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.12);font-size:13px;line-height:1.7">
+          <strong style="color:var(--ac2)">About AmForge Analytics</strong> — Built by <strong>Arpit Moni</strong> as a free, zero-install alternative to Power BI.
+          Runs entirely in your browser. No cloud, no data leaks, no subscription. Power BI Pro costs ₹800+/month — AmForge is <strong style="color:var(--gn)">completely free</strong>.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="notif"></div>
+
+<!-- AmForge JavaScript -->
+<script src="app.js"></script>
+<script src="cleaner.js"></script>
+<script src="vscompare.js"></script>
+</body>
+</html>
