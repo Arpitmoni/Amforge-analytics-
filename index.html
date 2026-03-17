@@ -5,8 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>AmForge Analytics — by Arpit Moni</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
+<style>.map-label{background:transparent!important;border:none!important;box-shadow:none!important;color:#fff;font-size:10px;font-weight:700;}</style>
 </head>
 <body>
 <!-- SIDEBAR -->
@@ -30,6 +34,7 @@
     <button class="ni" data-sc="nl"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Ask AI</button>
     <button class="ni" data-sc="cleaner"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Data Cleaner<span class="pro">PRO</span></button>
     <button class="ni" data-sc="vscompare"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg>vs Power BI<span class="new">NEW</span></button>
+    <button class="ni" data-sc="mapview"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>Map View<span class="new">NEW</span></button>
     <div class="nav-grp" id="ds-sep" style="display:none">My Datasets</div>
     <div id="ds-nav"></div>
   </nav>
@@ -172,7 +177,42 @@
     </div>
 
     <!-- VS POWER BI -->
-    <div id="sc-vscompare" class="screen">
+    <div id="sc-mapview" class="screen">
+  <div class="pg-head">
+    <div>
+      <div class="pg-title">🗺️ Map View</div>
+      <div class="pg-sub">Geographic data visualization</div>
+    </div>
+  </div>
+  <div id="map-container">
+    <div style="background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:24px;margin-bottom:16px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <div>
+          <label style="font-size:11px;color:var(--t2);display:block;margin-bottom:4px">LOCATION COLUMN</label>
+          <select id="map-loc-col" onchange="renderMap()" style="background:var(--s2);border:1px solid var(--b1);color:var(--tx);padding:8px 12px;border-radius:8px;font-size:13px">
+            <option>-- Select --</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--t2);display:block;margin-bottom:4px">VALUE COLUMN</label>
+          <select id="map-val-col" onchange="renderMap()" style="background:var(--s2);border:1px solid var(--b1);color:var(--tx);padding:8px 12px;border-radius:8px;font-size:13px">
+            <option>-- Select --</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--t2);display:block;margin-bottom:4px">MAP TYPE</label>
+          <select id="map-type" onchange="renderMap()" style="background:var(--s2);border:1px solid var(--b1);color:var(--tx);padding:8px 12px;border-radius:8px;font-size:13px">
+            <option value="bubble">Bubble Map</option>
+            <option value="choropleth">Region Colors</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="map-chart" style="height:450px;border-radius:14px;overflow:hidden;border:1px solid var(--b1)"></div>
+    <div id="map-legend" style="margin-top:12px"></div>
+  </div>
+</div>
+<div id="sc-vscompare" class="screen">
       <div class="sec-card" style="max-width:950px">
         <div class="sec-head">
           <div class="sec-icon" style="background:rgba(212,175,55,.12);font-size:20px">⚔️</div>
@@ -195,9 +235,6 @@
 </div>
 <div id="notif"></div>
 <div id="notif"></div>
-<div id="notif"></div>
 <script src="app.js"></script>
-<script src="cleaner.js"></script>
-<script src="vscompare.js"></script>
 </body>
-       </html>
+  </html>
