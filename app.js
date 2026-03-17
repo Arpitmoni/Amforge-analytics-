@@ -1,12 +1,3 @@
-/* =====================================================
-   AmForge Analytics — app.js
-   Core Application Logic
-   State Management · Data Engine · File Handling
-   Navigation · Chart Engine · Dashboard · Insights
-   Forecast · Data Table · NL Query · Export
-   Developed by Arpit Moni
-   Version: 2.0
-   ===================================================== */
 
 
 'use strict';
@@ -29,8 +20,14 @@ function detectType(vals){
   const nn=vals.filter(v=>!isNull(v)&&String(v).trim());
   if(!nn.length)return'text';
   const dr=/^\d{4}[-\/]\d{1,2}([-\/]\d{1,2})?$|^\d{1,2}-\d{4}$/;
-  if(nn.every(v=>!isNaN(Number(String(v).trim()))))return'number';
-  if(nn.slice(0,30).every(v=>dr.test(String(v).trim())))return'date';
+  const nullLike=new Set(['null','n/a','na','none','nan','-','abc','#n/a','undefined']);
+  // Filter out null-like and error values before type check
+  const clean=nn.filter(v=>!nullLike.has(String(v).trim().toLowerCase()));
+  if(!clean.length)return'text';
+  const numVals=clean.filter(v=>!isNaN(Number(String(v).trim()))&&String(v).trim()!=='');
+  // If 60%+ values are numeric -> treat as number column
+  if(numVals.length/clean.length>=0.6)return'number';
+  if(clean.slice(0,30).every(v=>dr.test(String(v).trim())))return'date';
   return'text';
 }
 function parseCSV(text){
@@ -131,7 +128,10 @@ function buildChart(cid,type,labels,values){
 function agg(rows,gcol,ncol){
   const m={};
   rows.forEach(r=>{
-    const k=String(r[gcol]||'').trim();
+    let k=String(r[gcol]||'').trim();
+    // Normalize date formats for consistent grouping
+    if(/^\d{2}-\d{4}$/.test(k)){const[mo,yr]=k.split('-');k=`${yr}-${mo.padStart(2,'0')}`;}
+    if(/^\d{4}\/\d{1,2}/.test(k))k=k.replace('/','-');
     const nulls=new Set(['','null','n/a','na','none','undefined','nil','missing','nan','-','?','NULL','N/A']);
     if(!k||nulls.has(k.toLowerCase()))return;
     const v=parseFloat(r[ncol]);
@@ -263,161 +263,4 @@ function renderInsights(){
     const cv=(std/avg*100);if(cv>50)insights.push({type:'warning',em:'📊',text:`<strong>${col}</strong> has high variability (CV: ${cv.toFixed(0)}%) — data is widely spread. Min: ${fmtN(mn)}, Max: ${fmtN(mx)}`});
   });
   if(!insights.length)insights.push({type:'info',em:'✅',text:'Data looks clean and consistent — no anomalies or issues detected.'});
-  document.getElementById('ins-list').innerHTML=insights.map((ins,i)=>`<div class="ins-card ${ins.type}" style="animation-delay:${i*0.05}s"><span style="font-size:19px">${ins.em}</span><div class="ins-tx">${ins.text}</div></div>`).join('');
-  // schema tags
-  document.getElementById('schema-tags').innerHTML=ds.headers.map(h=>{const t=ds.schema[h];const c=t==='number'?'var(--cy)':t==='date'?'var(--am)':'var(--ac2)';return`<span style="padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(${t==='number'?'6,182,212':t==='date'?'245,158,11':'37,99,235'},.12);color:${c};border:1px solid ${c}33">${h} <span style="opacity:.6;font-weight:400">${t}</span></span>`;}).join('');
-}
-
-// ═══════════ FORECAST ═══════════
-function renderForecast(){
-  const ds=getDS();if(!ds)return;
-  const rows=getRows(),schema=ds.schema;
-  const dates=Object.entries(schema).filter(([,t])=>t==='date').map(([k])=>k);
-  const nums=Object.entries(schema).filter(([,t])=>t==='number').map(([k])=>k);
-  if(!nums.length||!dates.length){document.getElementById('fc-cards').innerHTML='<div style="color:var(--t2);padding:20px">Need at least 1 date column and 1 numeric column.</div>';return;}
-  const m=agg(rows,dates[0],nums[0]);
-  const sorted=Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0]));
-  const n=sorted.length,xVals=sorted.map((_,i)=>i),yVals=sorted.map(e=>e[1]);
-  const xm=xVals.reduce((a,b)=>a+b,0)/n,ym=yVals.reduce((a,b)=>a+b,0)/n;
-  const slope=(xVals.reduce((s,x,i)=>s+(x-xm)*(yVals[i]-ym),0))/(xVals.reduce((s,x)=>s+Math.pow(x-xm,2),0)||1);
-  const intercept=ym-slope*xm;
-  const fc=[{l:'P+1',v:Math.max(0,Math.round(intercept+slope*(n)))},{l:'P+2',v:Math.max(0,Math.round(intercept+slope*(n+1)))},{l:'P+3',v:Math.max(0,Math.round(intercept+slope*(n+2)))}];
-  const allLabels=[...sorted.map(e=>e[0]),'P+1','P+2','P+3'];
-  const histData=sorted.map(e=>e[1]);
-  const forecastData=[...Array(n).fill(null),...fc.map(f=>f.v)];
-  killChart('fc-chart');
-  const canvas=document.getElementById('fc-chart');if(!canvas)return;
-  APP.CI['fc-chart']=new Chart(canvas.getContext('2d'),{type:'line',data:{labels:allLabels,datasets:[{label:'Historical',data:histData,borderColor:'#2563EB',backgroundColor:'rgba(37,99,235,.1)',borderWidth:2,fill:true,tension:.35,pointRadius:3,spanGaps:false},{label:'Forecast',data:forecastData,borderColor:'#F59E0B',backgroundColor:'rgba(245,158,11,.15)',borderWidth:2,borderDash:[6,4],fill:true,tension:.2,pointRadius:5,pointBackgroundColor:'#F59E0B',spanGaps:false}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#94A3B8',font:{size:11}}}},scales:{x:{ticks:{color:'#475569',font:{size:9}},grid:{color:'#1E2840'},border:{color:'#1E2840'}},y:{ticks:{color:'#475569',font:{size:9},callback:fmtN},grid:{color:'#1E2840'},border:{color:'#1E2840'}}}}});
-  document.getElementById('fc-cards').innerHTML=fc.map(f=>`<div class="fc-card"><div class="fc-lbl">Forecast ${f.l}</div><div class="fc-val">${fmtN(f.v)}</div><div class="fc-sub">Predicted ${nums[0]}</div></div>`).join('');
-}
-
-// ═══════════ DATA TABLE ═══════════
-function renderTable(){
-  const ds=getDS();if(!ds)return;
-  const srch=document.getElementById('tbl-srch').value.toLowerCase();
-  const col=document.getElementById('tbl-col').value;
-  document.getElementById('tbl-col').innerHTML='<option value="">All columns</option>'+ds.headers.map(h=>`<option value="${h}">${h}</option>`).join('');
-  document.getElementById('tbl-head').innerHTML=`<tr>${ds.headers.map(h=>`<th>${h}<span class="type-tag">${ds.schema[h]}</span></th>`).join('')}</tr>`;
-  let rows=ds.rows;
-  if(srch)rows=rows.filter(r=>{const t=col?String(r[col]):Object.values(r).join(' ');return t.toLowerCase().includes(srch);});
-  document.getElementById('tbl-count').textContent=`${rows.length.toLocaleString()} rows`;
-  document.getElementById('tbl-body').innerHTML=rows.slice(0,500).map(r=>`<tr>${ds.headers.map(h=>`<td class="${ds.schema[h]==='number'?'num':''}">${ds.schema[h]==='number'?fmtN(r[h]):r[h]}</td>`).join('')}</tr>`).join('');
-}
-
-// ═══════════ NL QUERY ═══════════
-function renderNL(){
-  const ds=getDS();if(!ds)return;
-  const nums=Object.entries(ds.schema).filter(([,t])=>t==='number').map(([k])=>k);
-  const cats=Object.entries(ds.schema).filter(([,t])=>t==='text').map(([k])=>k);
-  const sugs=[`Show ${nums[0]||'revenue'} by ${cats[0]||'category'}`,`${nums[0]||'revenue'} trend over time`,`Top 5 ${cats[0]||'products'} by ${nums[0]||'sales'}`,`Distribution of ${nums[0]||'revenue'}`];
-  document.getElementById('nl-sug').innerHTML=sugs.map(s=>`<button class="nl-sug-btn" onclick="document.getElementById('nl-in').value='${s}'">${s}</button>`).join('');
-  renderNLCharts();
-}
-function buildNLChart(){
-  const ds=getDS();if(!ds){notify('Load a dataset first','error');return;}
-  const q=document.getElementById('nl-in').value.trim();if(!q)return;
-  const ql=q.toLowerCase();
-  const nums=Object.entries(ds.schema).filter(([,t])=>t==='number').map(([k])=>k);
-  const cats=Object.entries(ds.schema).filter(([,t])=>t==='text').map(([k])=>k);
-  if(!nums.length){notify('No numeric columns found','error');return;}
-  let type='bar';
-  if(ql.includes('trend')||ql.includes('over time')||ql.includes('line'))type='line';
-  else if(ql.includes('pie')||ql.includes('share')||ql.includes('distribution'))type='pie';
-  else if(ql.includes('area'))type='area';
-  else if(ql.includes('scatter')||ql.includes(' vs '))type='scatter';
-  const topN=(ql.match(/top\s*(\d+)/)||[,10])[1]*1;
-  const numCol=nums.find(c=>ql.includes(c.toLowerCase()))||nums[0];
-  const catCol=cats.find(c=>ql.includes(c.toLowerCase()))||cats[0];
-  const rows=getRows();
-  const id='nl_'+Date.now();
-  if(type==='scatter'&&nums.length>=2){APP.nlCharts.unshift({id,title:`"${q}"`,type:'scatter',scatter:rows.slice(0,150).map(r=>({x:parseFloat(r[nums[0]])||0,y:parseFloat(r[nums[1]])||0})),pts:150});}
-  else{const m=agg(rows,catCol||ds.headers[0],numCol);const s=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,topN);APP.nlCharts.unshift({id,title:`"${q}"`,type,labels:s.map(e=>e[0]),values:s.map(e=>Math.round(e[1])),pts:s.length});}
-  document.getElementById('nl-in').value='';
-  document.getElementById('nl-empty').style.display='none';
-  renderNLCharts();
-  notify(`✓ Chart created: "${q}"`);
-}
-function renderNLCharts(){
-  const c=document.getElementById('nl-charts');
-  if(!APP.nlCharts.length)return;
-  c.innerHTML=APP.nlCharts.map(ch=>makeChartCard(ch.id,ch.title,ch.pts,ch.type)+`<button onclick="removeNLChart('${ch.id}')" style="margin-top:8px;font-size:11px;color:var(--t2);background:none;border:none;cursor:pointer">✕ Remove</button>`).join('');
-  setTimeout(()=>APP.nlCharts.forEach(ch=>{
-    if(ch.type==='scatter')buildChart(ch.id,'scatter',null,ch.scatter||[]);
-    else buildChart(ch.id,ch.type,ch.labels,ch.values);
-  }),30);
-}
-function removeNLChart(id){APP.nlCharts=APP.nlCharts.filter(c=>c.id!==id);if(!APP.nlCharts.length)document.getElementById('nl-empty').style.display='block';renderNLCharts();}
-
-// ═══════════ EXPORT ═══════════
-function exportCSV(){
-  const ds=getDS();if(!ds)return;
-  const rows=getRows();
-  const csv=[ds.headers.join(','),...rows.map(r=>ds.headers.map(h=>`"${String(r[h]||'').replace(/"/g,'""')}"`).join(','))].join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=ds.name.replace('.csv','')+'_filtered.csv';a.click();
-  notify('✓ CSV exported!');
-}
-
-// ═══════════ SAMPLE DATA ═══════════
-const CLEAN_CSV=`Date,Product,Region,Salesperson,Revenue,Units,Profit,Rating
-2024-01,Laptop Pro,North,Amit,84200,42,22100,4.5
-2024-01,SmartPhone X,South,Priya,61500,205,18450,4.2
-2024-01,Tablet Air,East,Rahul,32400,108,9720,3.8
-2024-01,Headphones,West,Sneha,18900,315,5670,4.7
-2024-01,Smart Watch,North,Vikram,24600,82,7380,4.1
-2024-02,Laptop Pro,West,Amit,91800,46,24780,4.6
-2024-02,SmartPhone X,North,Priya,78200,260,23460,4.3
-2024-02,Tablet Air,South,Rahul,28900,96,8670,3.9
-2024-02,Headphones,East,Sneha,22400,373,6720,4.8
-2024-02,Smart Watch,West,Vikram,31200,104,9360,4.0
-2024-03,Laptop Pro,East,Amit,102500,51,28700,4.7
-2024-03,SmartPhone X,West,Priya,88400,294,26520,4.4
-2024-03,Tablet Air,North,Rahul,41200,137,12360,4.1
-2024-03,Headphones,South,Sneha,19800,330,5940,4.6
-2024-03,Smart Watch,East,Vikram,28900,96,8670,4.2
-2024-04,Laptop Pro,South,Amit,88600,44,23922,4.4
-2024-04,SmartPhone X,East,Priya,94100,313,28230,4.5
-2024-04,Tablet Air,West,Rahul,35600,118,10680,3.7
-2024-04,Headphones,North,Sneha,27300,455,8190,4.9
-2024-04,Smart Watch,South,Vikram,33600,112,10080,4.3
-2024-05,Laptop Pro,North,Amit,118200,59,31914,4.8
-2024-05,SmartPhone X,South,Priya,102400,341,30720,4.6
-2024-05,Tablet Air,East,Rahul,48900,163,14670,4.2
-2024-05,Headphones,West,Sneha,31200,520,9360,4.7
-2024-05,Smart Watch,North,Vikram,39800,132,11940,4.4
-2024-06,Laptop Pro,West,Amit,125600,62,33912,4.9
-2024-06,SmartPhone X,North,Priya,115800,386,34740,4.7
-2024-06,Tablet Air,South,Rahul,52100,173,15630,4.3
-2024-06,Headphones,East,Sneha,28900,481,8670,4.8
-2024-06,Smart Watch,West,Vikram,44200,147,13260,4.5
-2024-07,Laptop Pro,East,Amit,112400,56,30348,4.6
-2024-07,SmartPhone X,West,Priya,108200,360,32460,4.5
-2024-07,Tablet Air,North,Rahul,45800,152,13740,4.0
-2024-07,Headphones,South,Sneha,33600,560,10080,4.9
-2024-07,Smart Watch,East,Vikram,41500,138,12450,4.3
-2024-08,Laptop Pro,South,Amit,131000,65,35370,4.9
-2024-08,SmartPhone X,East,Priya,124600,415,37380,4.8
-2024-08,Tablet Air,West,Rahul,58200,194,17460,4.4
-2024-08,Headphones,North,Sneha,36800,613,11040,4.7
-2024-08,Smart Watch,South,Vikram,48900,163,14670,4.6
-2024-09,Laptop Pro,North,Amit,142800,71,38556,4.9
-2024-09,SmartPhone X,South,Priya,138200,460,41460,4.8
-2024-09,Tablet Air,East,Rahul,61400,204,18420,4.5
-2024-09,Headphones,West,Sneha,42100,701,12630,4.8
-2024-09,Smart Watch,North,Vikram,52300,174,15690,4.7
-2024-10,Laptop Pro,West,Amit,158400,79,42768,4.8
-2024-10,SmartPhone X,North,Priya,152800,509,45840,4.9
-2024-10,Tablet Air,South,Rahul,68900,229,20670,4.6
-2024-10,Headphones,East,Sneha,48200,803,14460,4.9
-2024-10,Smart Watch,West,Vikram,57800,192,17340,4.8
-2024-11,Laptop Pro,East,Amit,189200,94,51084,5.0
-2024-11,SmartPhone X,West,Priya,178400,594,53520,4.9
-2024-11,Tablet Air,North,Rahul,82400,274,24720,4.7
-2024-11,Headphones,South,Sneha,58900,981,17670,4.8
-2024-11,Smart Watch,East,Vikram,68200,227,20460,4.9
-2024-12,Laptop Pro,South,Amit,224600,112,60642,5.0
-2024-12,SmartPhone X,East,Priya,198600,661,59580,4.9
-2024-12,Tablet Air,West,Rahul,94200,314,28260,4.8
-2024-12,Headphones,North,Sneha,72400,1206,21720,4.9
-2024-12,Smart Watch,South,Vikram,81400,271,24420,4.8`;
-
-function loadSample(){const p=parseCSV(CLEAN_CSV);const c=basicClean(p.rows,p.schema);const id='ds_'+Date.now();APP.datasets.push({id,name:'SalesData_2024.csv',headers:p.headers,rows:c,schema:p.schema});APP.activeId=id;APP.filterCol='';APP.filterVal='';updateNav();showScreen('dashboard');notify('✓ Sample dataset loaded — 60 rows');}
+  document.getElementById('ins-list').innerHTML=insights.map((ins,i)=>`
